@@ -1,59 +1,110 @@
 package com.learn.lavsam.mytranslatorl1.view.main
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import android.view.Menu
-import android.view.MenuItem
+import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.learn.lavsam.mytranslatorl1.R
-import com.learn.lavsam.mytranslatorl1.databinding.ActivityMainBinding
+import com.learn.lavsam.mytranslatorl1.model.data.AppState
+import com.learn.lavsam.mytranslatorl1.model.data.DataModel
+import com.learn.lavsam.mytranslatorl1.presenter.Presenter
+import com.learn.lavsam.mytranslatorl1.view.base.BaseActivity
+import com.learn.lavsam.mytranslatorl1.view.base.View
+import com.learn.lavsam.mytranslatorl1.view.main.adapter.MainAdapter
+import kotlinx.android.synthetic.main.activity_main.*
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity<AppState>() {
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
-    private lateinit var binding: ActivityMainBinding
+    private var adapter: MainAdapter? = null
+    private val onListItemClickListener: MainAdapter.OnListItemClickListener =
+        object : MainAdapter.OnListItemClickListener {
+            override fun onItemClick(data: DataModel) {
+                Toast.makeText(this@MainActivity, data.text, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    override fun createPresenter(): Presenter<AppState, View> {
+        return MainPresenterImpl()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        setSupportActionBar(binding.toolbar)
-
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        setupActionBarWithNavController(navController, appBarConfiguration)
-
-        binding.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+        setContentView(R.layout.activity_main)
+        search_fab.setOnClickListener {
+            val searchDialogFragment = SearchDialogFragment.newInstance()
+            searchDialogFragment.setOnSearchClickListener(object :
+                SearchDialogFragment.OnSearchClickListener {
+                override fun onClick(searchWord: String) {
+                    presenter.getData(searchWord, true)
+                }
+            })
+            searchDialogFragment.show(supportFragmentManager, BOTTOM_SHEET_FRAGMENT_DIALOG_TAG)
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+    override fun renderData(appState: AppState) {
+        when (appState) {
+            is AppState.Success -> {
+                val dataModel = appState.data
+                if (dataModel == null || dataModel.isEmpty()) {
+                    showErrorScreen(getString(R.string.empty_server_response_on_success))
+                } else {
+                    showViewSuccess()
+                    if (adapter == null) {
+                        main_activity_recyclerview.layoutManager =
+                            LinearLayoutManager(applicationContext)
+                        main_activity_recyclerview.adapter =
+                            MainAdapter(onListItemClickListener, dataModel)
+                    } else {
+                        adapter!!.setData(dataModel)
+                    }
+                }
+            }
+            is AppState.Loading -> {
+                showViewLoading()
+                if (appState.progress != null) {
+                    progress_bar_horizontal.visibility = android.view.View.VISIBLE
+                    progress_bar_round.visibility = android.view.View.GONE
+                    progress_bar_horizontal.progress = appState.progress
+                } else {
+                    progress_bar_horizontal.visibility = android.view.View.GONE
+                    progress_bar_round.visibility = android.view.View.VISIBLE
+                }
+            }
+            is AppState.Error -> {
+                showErrorScreen(appState.error.message)
+            }
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
-        return navController.navigateUp(appBarConfiguration)
-                || super.onSupportNavigateUp()
+    private fun showErrorScreen(error: String?) {
+        showViewError()
+        error_textview.text = error ?: getString(R.string.undefined_error)
+        reload_button.setOnClickListener {
+            presenter.getData("hi", true)
+        }
+    }
+
+    private fun showViewSuccess() {
+        success_linear_layout.visibility = android.view.View.VISIBLE
+        loading_frame_layout.visibility = android.view.View.GONE
+        error_linear_layout.visibility = android.view.View.GONE
+    }
+
+    private fun showViewLoading() {
+        success_linear_layout.visibility = android.view.View.GONE
+        loading_frame_layout.visibility = android.view.View.VISIBLE
+        error_linear_layout.visibility = android.view.View.GONE
+    }
+
+    private fun showViewError() {
+        success_linear_layout.visibility = android.view.View.GONE
+        loading_frame_layout.visibility = android.view.View.GONE
+        error_linear_layout.visibility = android.view.View.VISIBLE
+    }
+
+    companion object {
+        private const val BOTTOM_SHEET_FRAGMENT_DIALOG_TAG =
+            "74a54328-5d62-46bf-ab6b-cbf5fgt0-092395"
     }
 }

@@ -1,7 +1,7 @@
 package com.learn.lavsam.mytranslatorl1.presenter
 
-import android.view.View
 import com.learn.lavsam.mytranslatorl1.model.data.AppState
+import com.learn.lavsam.mytranslatorl1.view.base.View
 
 interface Presenter<T : AppState, V : View> {
 
