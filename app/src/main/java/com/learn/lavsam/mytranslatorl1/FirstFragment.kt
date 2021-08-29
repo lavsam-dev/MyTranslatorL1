@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
+import com.learn.lavsam.mytranslatorl1.R
 import com.learn.lavsam.mytranslatorl1.databinding.FragmentFirstBinding
 
 /**

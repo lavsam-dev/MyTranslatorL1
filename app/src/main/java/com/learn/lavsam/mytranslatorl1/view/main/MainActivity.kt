@@ -1,4 +1,4 @@
-package com.learn.lavsam.mytranslatorl1.view
+package com.learn.lavsam.mytranslatorl1.view.main
 
 import android.os.Bundle
 import com.google.android.material.snackbar.Snackbar
