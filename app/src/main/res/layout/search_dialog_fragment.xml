@@ -3,16 +3,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/bottom_sheet_dialog_layout"
     android:layout_width="match_parent"
-    android:layout_height="@dimen/bottom_sheet_dialog_height"
+    android:layout_height="205dp"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
     android:layout_marginBottom="@dimen/margin_medium">
 
-    <TextView
-        android:id="@+id/search_button_textview"
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/search_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        style="@style/TextViewButtonStyle"
+        android:textColor="@color/color_white"
+        android:backgroundTint="@color/colorPrimary"
         android:layout_marginTop="@dimen/margin_medium"
         android:layout_marginEnd="@dimen/margin_medium"
         android:text="@string/button_search"
